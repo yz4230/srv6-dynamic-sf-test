@@ -1,0 +1,14 @@
+version: "3"
+
+tasks:
+  generate:
+    cmd: go generate ./...
+  build-debug:
+    cmds:
+      - go build -o ./build/debug
+      - sudo setcap cap_ipc_lock,cap_bpf,cap_perfmon,cap_net_admin=+ep ./build/debug
+  debug:
+    deps: [build-debug]
+    dotenv: [.env]
+    cmd: ./build/debug
+    interactive: true
