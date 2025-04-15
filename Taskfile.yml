@@ -1,14 +1,25 @@
 version: "3"
 
 tasks:
+  dump-vmlinux:
+    cmd: bpftool btf dump file /sys/kernel/btf/vmlinux format c > ebpf/vmlinux.h
   generate:
     cmd: go generate ./...
-  build-debug:
+  build:
+    deps: [generate]
     cmds:
-      - go build -o ./build/debug
-      - sudo setcap cap_ipc_lock,cap_bpf,cap_perfmon,cap_net_admin=+ep ./build/debug
-  debug:
-    deps: [build-debug]
+      - go build -o ./build/test
+      - sudo setcap cap_ipc_lock,cap_bpf,cap_perfmon,cap_net_admin=+ep ./build/test
+  run:
+    deps: [build]
     dotenv: [.env]
-    cmd: ./build/debug
+    cmd: ./build/test
     interactive: true
+  scenario:
+    deps: [build]
+    cmds:
+      - sudo ./scripts/up.sh
+      - sudo ./scripts/scenario.sh
+      - sudo ./scripts/down.sh
+    interactive: true
+    ignore_error: true
